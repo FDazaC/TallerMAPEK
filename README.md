@@ -1,8 +1,8 @@
 # Taller de Programación 2 - Sistema Web Autoadaptativo MAPE-K
-
+### Integrantes: Felipe Daza - Ramiro Alvarado
 ## 1. Descripción general
 Este proyecto implementa un sistema web autoadaptativo en Java usando Maven y Javalin.
-El servidor expone tres endpoints:
+Se encuentran tres endpoints:
 - `GET /content` - devuelve contenido educativo según el modo de presentación activo.
 - `GET /status` - muestra el estado actual del sistema y los umbrales configurados.
 - `GET /reset` - reinicia la simulación, dejando el contador en cero y el modo en `MULTIMEDIA`.
@@ -36,94 +36,9 @@ src/main/java/
 
 ## 3. Diagrama de clases
 
-```mermaid
-classDiagram
-    class Main {
-        +main(String[])
-    }
-    class KnowledgeBase {
-        -state: SystemState
-        -config: AdaptationConfig
-        +getInstance(): KnowledgeBase
-        +incrementRequest()
-        +reset()
-    }
-    class SystemState {
-        -requestCount: int
-        -currentMode: PresentationMode
-        +getRequestCount(): int
-        +incrementRequestCount()
-        +resetRequestCount()
-        +getCurrentMode(): PresentationMode
-        +setCurrentMode(PresentationMode)
-    }
-    class AdaptationConfig {
-        -restrictedThreshold: int
-        -textThreshold: int
-        +getRestrictedThreshold(): int
-        +getTextThreshold(): int
-    }
-    class PresentationMode {
-        <<enumeration>>
-        MULTIMEDIA
-        RESTRICTED
-        TEXT
-    }
-    class Monitor {
-        +checkAndRegister()
-    }
-    class Analyzer {
-        +analyze(): DemandLevel
-    }
-    class Planner {
-        +plan(DemandLevel): PresentationMode
-    }
-    class Executor {
-        +execute(PresentationMode)
-    }
-    class DemandLevel {
-        <<enumeration>>
-        LOW
-        MEDIUM
-        HIGH
-    }
-    class WebServer {
-        +startServer()
-    }
-    class ContentController {
-        +getContent(Context)
-        +getStatus(Context)
-        +resetSystem(Context)
-    }
-    class ContentService {
-        +getContent(): Content
-    }
-    class Content {
-        -title: String
-        -description: String
-        -imgUrl: String
-        -videoUrl: String
-        -message: String
-    }
+![Diagrama de arquitectura](diagrama%20de%20clases.jpg)
 
-    Main --> WebServer
-    WebServer --> ContentController
-    ContentController --> Monitor
-    ContentController --> Analyzer
-    ContentController --> Planner
-    ContentController --> Executor
-    ContentController --> ContentService
-    ContentController --> KnowledgeBase
-    ContentService --> KnowledgeBase
-    KnowledgeBase --> SystemState
-    KnowledgeBase --> AdaptationConfig
-    Analyzer --> DemandLevel
-    Planner --> PresentationMode
-    Executor --> PresentationMode
-    SystemState --> PresentationMode
-```
 
-> Nota: este diagrama es una representación de la organización de clases y sus relaciones.
 
 ## 4. Componentes MAPE-K implementados
 
@@ -177,8 +92,7 @@ Se puede usar `curl`, `Apache Bench`, `Postman`, `JMeter` o `k6` para generar pe
 ### Ejemplo con `curl` en un bucle
 
 ```bash
-for i in {1..25}; do curl -s http://localhost:7000/content > /dev/null; done
-curl http://localhost:7000/status
+for ($i=1; $i -le 25; $i++) { curl.exe -s http://localhost:7000/content; echo "" }
 ```
 
 ### Ejemplo con `Apache Bench`
@@ -241,20 +155,18 @@ ab -n 25 -c 5 http://localhost:7000/content
 ## 9. Evidencia del ciclo MAPE-K
 
 Al recibir una petición a `/content`, el servidor imprime en consola mensajes como:
+### Modo multimedia
+- `[MONITOR] Solicitud se ha registrado. Solicitudes actuales: 1`
+- `[Analyze] Se detectó demanda baja`
+- `[PLAN] Mantener/Activar modo multimedia.`
+### Modo restringido
+- `[MONITOR] Solicitud se ha registrado. Solicitudes actuales: 10`
+- `[Analyze] Se detectó demanda media`
+- `[PLAN] Activar modo restringido.`
+- `[EXECUTE] El sistema cambio a modo RESTRICTED.`
+- ### Modo texto
+- `[MONITOR] Solicitud se ha registrado. Solicitudes actuales: 20`
+- `[Analyze] Se detectó alta demanda`
+- `[PLAN] Activar modo texto.`
+- `[EXECUTE] El sistema cambio a modo TEXT.`
 
-- `[MONITOR] Solicitud se ha registrado. Solicitudes actuales: X`
-- `[Analyze] Se detectó demanda baja/medio/alta`
-- `[PLAN] Activar modo multimedia/restringido/texto.`
-- `[EXECUTE] El sistema cambio a modo RESTRICTED/TEXT.`
-
-Estos mensajes muestran la ejecución del ciclo MAPE-K en cada solicitud.
-
-## 10. Notas adicionales
-
-- El diseño del sistema separa claramente los componentes MAPE-K del controlador web y del servicio de contenido.
-- El proyecto usa Javalin para ofrecer un servidor web ligero y JSON como formato de respuesta.
-- El estado de adaptación se conserva en memoria a través de `KnowledgeBase`.
-
----
-
-**Entrega:** código fuente completo, `pom.xml`, `README.md`, diagrama de clases incluido en este archivo, evidencia del ciclo MAPE-K y prueba externa de carga.
